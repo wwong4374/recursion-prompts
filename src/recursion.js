@@ -338,6 +338,21 @@ var divide = function(x, y) {
 // http://www.cse.wustl.edu/~kjg/cse131/Notes/Recursion/recursion.html
 // https://www.khanacademy.org/computing/computer-science/cryptography/modarithmetic/a/the-euclidean-algorithm
 var gcd = function(x, y) {
+  // Base Case
+  if (x === 0) {
+    return y;
+  }
+  if (y === 0) {
+    return x;
+  }
+  if (x === y) {
+    return x;
+  }
+  if (x < 0 || y < 0) {
+    return null;
+  }
+  // Recursive Case
+  return gcd(y, x % y);
 };
 
 // 15. Write a function that compares each character of two strings and returns true if
@@ -359,27 +374,66 @@ var compareStr = function(str1, str2) {
 
 // 16. Write a function that accepts a string and creates an array where each letter
 // occupies an index of the array.
+// createArray('st') = [s, t];
 var createArray = function(str) {
   // Base Case
   if (str.length === 0) {
     return [];
   }
+  if (str.length === 1) {
+    return [str[0]];
+  }
   // Recursive Case
   var arr = [];
   arr.push(str[0]);
-  var innerStr = str.slice(1, arr.length);
-  // createArray(innerStr);
+  // Create inner array and push chars to result
+  var innerStr = str.slice(1, str.length);
+  var innerArray = createArray(innerStr);
+  for (var i = 0; i < innerArray.length; i++) {
+    arr.push(innerArray[i]);
+  }
   return arr;
 };
 
 // 17. Reverse the order of an array
+// reverseArr([1,2,3]) = [3,2,1]
 var reverseArr = function(array) {
+  // Base Case
+  if (array.length === 0 || array.length === 1) {
+    return array;
+  }
+  // Recursive Case
+  var reversed = [];
+  // Push last element
+  reversed.push(array[array.length - 1]);
+  // Pop last element and reverse remaining array
+  var innerArr = array.slice(0, array.length - 1);
+  var innerReversed = reverseArr(innerArr);
+  for (var i = 0; i < innerReversed.length; i++) {
+    reversed.push(innerReversed[i]);
+  }
+  return reversed;
 };
 
 // 18. Create a new array with a given value and length.
 // buildList(0,5) // [0,0,0,0,0]
-// buildList(7,3) // [7,7,7]
+// buildList(7,2) // [7,7]
 var buildList = function(value, length) {
+  // Base Case
+  if (length === 0) {
+    return [];
+  }
+  if (length === 1) {
+    return [value];
+  }
+  // Recursive Case
+  var array = [];
+  array.push(value);
+  var inner = buildList(value, length - 1);
+  for (var i = 0; i < length - 1; i++) {
+    array.push(inner[i]);
+  }
+  return array;
 };
 
 // 19. Implement FizzBuzz. Given integer n, return an array of the string representations of 1 to n.
@@ -388,36 +442,154 @@ var buildList = function(value, length) {
 // For numbers which are multiples of both three and five, output “FizzBuzz” instead of the number.
 // fizzBuzz(5) // ['1','2','Fizz','4','Buzz']
 var fizzBuzz = function(n) {
+  // Base Case
+  if (n === 1) {
+    return ['1'];
+  }
+  // Recursive Case
+  var result = [];
+  var element = '';
+  // Determine output element
+  if (n % 3 === 0) {
+    if (n % 5 === 0) {
+      element = 'FizzBuzz';
+    } else {
+      element = 'Fizz'
+    }
+  } else if (n % 5 === 0) {
+    element = 'Buzz';
+  } else {
+    element = n.toString();
+  }
+
+  result.unshift(element);
+  var remaining = fizzBuzz(n - 1);
+  for (var i = remaining.length - 1; i >= 0; i--) {
+    result.unshift(remaining[i]);
+  }
+  return result;
 };
 
 // 20. Count the occurrence of a value in a list.
 // countOccurrence([2,7,4,4,1,4], 4) // 3
 // countOccurrence([2,'banana',4,4,1,'banana'], 'banana') // 2
 var countOccurrence = function(array, value) {
+  // Base Case
+  if (array.length === 0) {
+    return 0;
+  }
+  if (array.length === 1) {
+    return array[0] === value ? 1 : 0;
+  }
+  // Recursive Case
+  return (array[0] === value ? 1 : 0) + countOccurrence(array.slice(1, array.length), value);
 };
 
 // 21. Write a recursive version of map.
 // rMap([1,2,3], timesTwo); // [2,4,6]
 var rMap = function(array, callback) {
+  // Base Case
+  if (array.length === 0) {
+    return array;
+  }
+  if (array.length === 1) {
+    return [callback(array[0])];
+  }
+  // Recursive Case
+  var result = [];
+  // First element
+  var first = array.slice(0,1);
+  var firstResult = callback(first[0]);
+  result.push(firstResult);
+  // Remaining elements
+  var remaining = rMap(array.slice(1, array.length), callback);
+  for (var i = 0; i < remaining.length; i++) {
+    result.push(remaining[i]);
+  }
+  return result;
 };
 
 // 22. Write a function that counts the number of times a key occurs in an object.
-// var obj = {'e':{'x':'y'},'t':{'r':{'e':'r'},'p':{'y':'r'}},'y':'e'};
+/* var obj = {
+  'e':{'x':'y'},
+  't':{'r':{'e':'r'},
+  'p':{'y':'r'}},
+  'y':'e'
+};
+*/
 // countKeysInObj(obj, 'r') // 1
 // countKeysInObj(obj, 'e') // 2
-var countKeysInObj = function(obj, key) {
+var countKeysInObj = function(obj, target) {
+  var count = 0;
+  for (var key in obj) {
+    if (key === target) {
+      count++;
+    }
+    // Base Case - Value is not an object
+      // Do nothing
+    // Recursive Case - Value is an object
+    if (typeof obj[key] === 'object') {
+      count += countKeysInObj(obj[key], target);
+    }
+  }
+  return count;
 };
 
 // 23. Write a function that counts the number of times a value occurs in an object.
-// var obj = {'e':{'x':'y'},'t':{'r':{'e':'r'},'p':{'y':'r'}},'y':'e'};
+/* var obj = {
+  'e':{'x':'y'},
+  't':{'r':{'e':'r'},
+  'p':{'y':'r'}},
+  'y':'e'
+};
+*/
 // countValuesInObj(obj, 'r') // 2
 // countValuesInObj(obj, 'e') // 1
 var countValuesInObj = function(obj, value) {
+  var count = 0;
+  for (var key in obj) {
+    // Base Case - Value is not an object
+    if (typeof obj[key] !== 'object') {
+      if (obj[key] === value) {
+        count++;
+      }
+    }
+    // Recursive Case - Value is an object
+    if (typeof obj[key] === 'object') {
+      count += countValuesInObj(obj[key], value);
+    }
+  }
+  return count;
 };
 
 // 24. Find all keys in an object (and nested objects) by a provided name and rename
 // them to a provided new name while preserving the value stored at that key.
+/* var obj = {
+  'e':{'x':'y'},
+  't':{'r':{'e':'r'},
+  'p':{'y':'r'}},
+  'y':'e'
+};
+*/
 var replaceKeysInObj = function(obj, oldKey, newKey) {
+  for (var key in obj) {
+    // Base Case - Value is not an object
+    if (typeof obj[key] !== 'object') {
+      // If current key needs to be replaced
+      if (key === oldKey) {
+        // Create new property
+        obj[newKey] = obj[key];
+        // Delete old property
+        delete obj[oldKey];
+      }
+    }
+    // Recursive Case - Value is an object
+    if (typeof obj[key] === 'object') {
+      // Call replaceKeysInObj on nested object
+      obj[key] = replaceKeysInObj(obj[key], oldKey, newKey);
+    }
+  }
+  return obj;
 };
 
 // 25. Get the first n Fibonacci numbers. In the Fibonacci sequence, each subsequent
@@ -426,6 +598,20 @@ var replaceKeysInObj = function(obj, oldKey, newKey) {
 // fibonacci(5); // [0,1,1,2,3,5]
 // Note: The 0 is not counted.
 var fibonacci = function(n) {
+  // Base Case
+  if (n < 1) {
+    return null;
+  }
+  if (n === 1) {
+    return [0, 1];
+  }
+  // Recursive Case
+  var result = [];
+  var prior = fibonacci(n - 1);
+  // Get current Fibonacci number
+  var sum = prior[prior.length - 1] + prior[prior.length - 2];
+  prior.push(sum);
+  return prior;
 };
 
 // 26. Return the Fibonacci number located at index n of the Fibonacci sequence.
@@ -434,17 +620,60 @@ var fibonacci = function(n) {
 // nthFibo(7); // 13
 // nthFibo(3); // 2
 var nthFibo = function(n) {
+  // Base Case
+  if (n < 0) {
+    return null;
+  }
+  if (n === 0) {
+    return 0;
+  }
+  if (n === 1) {
+    return 1;
+  }
+  // Recursive Case
+  return nthFibo(n - 1) + nthFibo(n - 2);
 };
 
 // 27. Given an array of words, return a new array containing each word capitalized.
 // var words = ['i', 'am', 'learning', 'recursion'];
 // capitalizedWords(words); // ['I', 'AM', 'LEARNING', 'RECURSION']
 var capitalizeWords = function(array) {
+  // Base Case
+  if (array.length === 0) {
+    return [];
+  }
+  if (array.length === 1) {
+    return [array[0].toUpperCase()];
+  }
+  // Recursive Case
+  var upperCase = [];
+  for (var i = 0; i < array.length; i++) {
+    var word = array[i];
+    var upperWord = capitalizeWords([word]);
+    upperCase.push(upperWord[0]);
+  }
+  return upperCase;
 };
 
 // 28. Given an array of strings, capitalize the first letter of each index.
 // capitalizeFirst(['car','poop','banana']); // ['Car','Poop','Banana']
 var capitalizeFirst = function(array) {
+    // Base Case
+    if (array.length === 0) {
+      return [];
+    }
+    if (array.length === 1) {
+      var word = array[0];
+      return [word[0].toUpperCase() + word.slice(1, word.length)];
+    }
+    // Recursive Case
+    var upperCase = [];
+    for (var i = 0; i < array.length; i++) {
+      var word = array[i];
+      var upperWord = capitalizeFirst([word]);
+      upperCase.push(upperWord[0]);
+    }
+    return upperCase;
 };
 
 // 29. Return the sum of all even numbers in an object containing nested objects.
@@ -457,16 +686,66 @@ var capitalizeFirst = function(array) {
 // };
 // nestedEvenSum(obj1); // 10
 var nestedEvenSum = function(obj) {
+  var evenSum = 0;
+  for (var key in obj) {
+    // Base Case
+    if (typeof obj[key] !== 'object') {
+      if (obj[key] % 2 === 0) {
+        evenSum += obj[key];
+      }
+    }
+    // Recursive Case
+    if (typeof obj[key] === 'object') {
+      evenSum += nestedEvenSum(obj[key]);
+    }
+  }
+  return evenSum;
 };
 
 // 30. Flatten an array containing nested arrays.
 // flatten([1,[2],[3,[[4]]],5]); // [1,2,3,4,5]
 var flatten = function(array) {
+  var flattened = [];
+  for (var i = 0; i < array.length; i++) {
+    // Base Case - Element is not an array
+    if (!Array.isArray(array[i])) {
+      flattened.push(array[i]);
+    } else {
+    // Recursive Case - Element is an array
+      flattened.push(...flatten(array[i]));
+    }
+  }
+  return flattened;
 };
 
 // 31. Given a string, return an object containing tallies of each letter.
 // letterTally('potato'); // {p:1, o:2, t:2, a:1}
 var letterTally = function(str, obj) {
+
+  obj = obj || {};
+  // Base Case Length 0
+  if (str.length === 0) {
+    return obj;
+  }
+  // Base Case Length 1
+  if (str.length === 1) {
+    obj[str[0]] = 1;
+    return obj;
+  }
+
+  // Iterate str
+  for (var i = 0; i < str.length; i++) {
+    var char = str[i];
+    // Base Case - First time encountering char
+    if (obj[char] === undefined) {
+      obj[char] = 1;
+    } else {
+      // Recursive Case
+      var currentObj = letterTally(char);
+      obj[char] = currentObj[char] + 1;
+    }
+  }
+  return obj;
 };
 
 // 32. Eliminate consecutive duplicates in a list. If the list contains repeated
@@ -475,18 +754,44 @@ var letterTally = function(str, obj) {
 // compress([1,2,2,3,4,4,5,5,5]) // [1,2,3,4,5]
 // compress([1,2,2,3,4,4,2,5,5,5,4,4]) // [1,2,3,4,2,5,4]
 var compress = function(list) {
+  var compressed = [];
+  for (var i = 0; i < list.length; i++) {
+    // Base Case - First time encountering value
+    if (!compressed.includes(list[i])) {
+      // Push value to result
+      compressed.push(list[i]);
+    } else {
+    // Recursive Case - Value has been encountered already
+      var innerCompressed = compress(list.slice(1));
+      for (var j = 0; j < innerCompressed.length; j++) {
+        if (!compressed.includes(innerCompressed[j])) {
+          compressed.push(list[j]);
+        }
+      }
+    }
+  }
+  return compressed;
 };
 
 // 33. Augment every element in a list with a new value where each element is an array
 // itself.
 // augmentElements([[],[3],[7]], 5); // [[5],[3,5],[7,5]]
 var augmentElements = function(array, aug) {
+  // Base Case
+  // Recursive Case
 };
 
 // 34. Reduce a series of zeroes to a single 0.
 // minimizeZeroes([2,0,0,0,1,4]) // [2,0,1,4]
 // minimizeZeroes([2,0,0,0,1,0,0,4]) // [2,0,1,0,4]
 var minimizeZeroes = function(array) {
+  // Iterate array
+    // If element is 0
+      // Recursive Case - Next element is 0
+        // Splice out current element
+        // Call minimizeZeroes on modified array
+    // Base Case - If at last element
+      // Return array
 };
 
 // 35. Alternate the numbers in an array between positive and negative regardless of
